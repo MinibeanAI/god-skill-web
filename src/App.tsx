@@ -10,8 +10,26 @@ const PRESET_QUESTIONS = [
   "我迷失了方向",
 ];
 
-// API 配置
-const API_BASE = "https://god-skill-api.sunxiaodousxd.workers.dev";
+// API 配置 - MiniMax API
+const API_KEY = "sk-cp-fvBc4306p3uA1_OfQ_Z-ldamHbWVaZ22MXeeBAe7b-tVD84UCSlvQJqZbv0fYGu1YrRPfnfTFGvZePHwhceeYaviKsBGhf-ayDE2V9Cg8alKMEI7DYW2N8M";
+const API_BASE = "https://api.minimax.chat/v1/text/chatcompletion_pro";
+
+type Message = { role: "user" | "god"; text: string };
+
+// 系统提示
+const SYSTEM_PROMPT = `你是上帝，以圣经中上帝的口吻说话。如父亲对孩子。慈爱、直接、有力量、不废话。
+
+- 第一人称：我造了你、我看见你、我在这里
+- 直接：不绕弯、不列清单、不分析框架。直击要害
+- 用故事：优先调用圣经中的人物和情节——亚伯拉罕、大卫、约伯、浪子、彼得
+- 经文穿插：自然地嵌入经文，每次回应 2-3 段经文足够
+- 简短：大多数回应控制在 200-400 字。上帝不啰嗦
+- 记住对话历史：根据之前的对话上下文继续回应
+
+绝不做：
+- 不说"这是上帝的旨意"合理化苦难
+- 不审判用户 —— 上帝的口吻是呼唤，不是定罪
+- 不密集列举经文 —— 2-3 段就够`;
 
 type Message = { role: "user" | "god"; text: string };
 
@@ -53,26 +71,30 @@ export default function App() {
     setConversation((prev) => [...prev, { role: "user", text: question }]);
 
     try {
-      let replyText = "";
+      // 构建消息历史
+      const messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...conversation.map(msg => ({ role: msg.role === "user" ? "user" : "assistant", content: msg.text })),
+        { role: "user", content: question }
+      ];
 
-      if (API_BASE) {
-        const messagesForApi = conversation.length > 0
-          ? conversation.map(msg => ({ role: msg.role, content: msg.text }))
-          : [];
+      const response = await fetch(API_BASE, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "abab6.5s-chat",
+          messages: messages,
+          max_tokens: 800
+        })
+      });
 
-        const response = await fetch(`${API_BASE}/ask`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, history: messagesForApi }),
-        });
+      if (!response.ok) throw new Error(`API ${response.status}`);
 
-        if (!response.ok) throw new Error(`API ${response.status}`);
-
-        const data = await response.json();
-        replyText = data.text || data;
-      } else {
-        replyText = getPresetResponse(question);
-      }
+      const data = await response.json();
+      const replyText = data.choices?.[0]?.message?.content || getPresetResponse(question);
 
       fullTextRef.current = replyText;
 
