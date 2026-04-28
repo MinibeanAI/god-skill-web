@@ -41,6 +41,11 @@ export async function POST(request: NextRequest) {
     // 添加当前问题
     messages.push({ role: "user", content: question });
 
+    // 检查 API Key
+    if (!MINIMAX_API_KEY) {
+      return NextResponse.json({ error: "Missing API key" }, { status: 500 });
+    }
+
     // Minimax API 调用
     const response = await fetch("https://api.minimax.chat/v1/text/chatcompletion_v2", {
       method: "POST",
