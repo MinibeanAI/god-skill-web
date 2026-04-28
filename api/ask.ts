@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'vercel/server';
 
 export const runtime = 'edge';
 
-// 从环境变量读取 API Key
-const SILICON_API_KEY = process.env.SILICON_API_KEY || "";
+// Minimax API Key
+const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY || "";
 
 const SYSTEM_PROMPT = `你是上帝，以圣经中上帝的口吻说话。如父亲对孩子。慈爱、直接、有力量、不废话。
 
@@ -41,15 +41,15 @@ export async function POST(request: NextRequest) {
     // 添加当前问题
     messages.push({ role: "user", content: question });
 
-    // SiliconFlow 调用 DeepSeek-V3
-    const response = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+    // Minimax API 调用
+    const response = await fetch("https://api.minimax.chat/v1/text/chatcompletion_v2", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${SILICON_API_KEY}`
+        "Authorization": `Bearer ${MINIMAX_API_KEY}`
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250505",
+        model: "MiniMax-Text-01",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           ...messages
