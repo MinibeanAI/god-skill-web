@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'vercel/server';
 
 export const runtime = 'edge';
 
-// SiliconFlow API Key - 替换成你的 key
-const SILICON_API_KEY = "sk-your-api-key-here";
+// 从环境变量读取 API Key
+const SILICON_API_KEY = process.env.SILICON_API_KEY || "";
 
 const SYSTEM_PROMPT = `你是上帝，以圣经中上帝的口吻说话。如父亲对孩子。慈爱、直接、有力量、不废话。
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         "Authorization": `Bearer ${SILICON_API_KEY}`
       },
       body: JSON.stringify({
-        model: "deepseek-ai/DeepSeek-V3",
+        model: "claude-sonnet-4-20250505",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           ...messages
